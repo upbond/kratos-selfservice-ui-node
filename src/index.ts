@@ -17,6 +17,14 @@ import * as https from 'https'
 import * as fs from 'fs'
 import protectSimple from './middleware/simple'
 import protectOathkeeper from './middleware/oathkeeper'
+import request from 'request'
+import { hydraLogin, hydraGetConsent, hydraPostConsent } from './routes/hydra'
+import { Configuration, PublicApi } from '@oryd/kratos-client'
+import bodyParser from 'body-parser'
+import csrf from 'csurf'
+import session from 'express-session'
+
+const csrfProtection = csrf({ cookie: true })
 
 export const protect =
   config.securityMode === SECURITY_MODE_JWT ? protectOathkeeper : protectSimple
@@ -32,7 +40,14 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   res.locals.pathPrefix = config.baseUrl ? '' : '/'
   next()
 })
-
+app.use(
+  session({
+    secret: config.cookieSecret,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: config.https.enabled },
+  })
+)
 app.use(express.static('public'))
 app.use(express.static('node_modules/normalize.css'))
 
@@ -67,6 +82,7 @@ if (process.env.NODE_ENV === 'stub') {
     })
   })
   app.get('/auth/login', (_: Request, res: Response) => {
+    console.log(stubs.login.methods)
     res.render('login', {
       password: stubs.login.methods.password.config,
       oidc: stubs.login.methods.oidc.config,
@@ -81,10 +97,27 @@ if (process.env.NODE_ENV === 'stub') {
   app.get('/dashboard', protect, dashboard)
   app.get('/auth/registration', registrationHandler)
   app.get('/auth/login', loginHandler)
-  app.get('/error', errorHandler)
+  app.get('/error', errorHandler) 
   app.get('/settings', protect, settingsHandler)
   app.get('/verify', verifyHandler)
   app.get('/recovery', recoveryHandler)
+  if (Boolean(config.hydra.admin)) {
+    app.get('/auth/hydra/login', hydraLogin)
+    app.get(
+      '/auth/hydra/consent',
+      protect,
+      csrfProtection,
+      hydraGetConsent,
+      errorHandler
+    )
+    app.post(
+      '/auth/hydra/consent',
+      protect,
+      bodyParser.urlencoded({ extended: true }),
+      csrfProtection,
+      hydraPostConsent
+    )
+  }
 }
 
 app.get('/health', (_: Request, res: Response) => res.send('ok'))
@@ -119,3 +152,14 @@ if (config.https.enabled) {
 } else {
   app.listen(port, listener)
 }
+console.log('----- route -----')
+app._router.stack.forEach(function(layer: any){
+  if(layer.route){
+    Object.keys(layer.route.methods).forEach((key: any) => {
+      if(layer.route.methods[key]){
+        console.log(key,layer.route.path);
+      }
+    })
+  }
+});
+console.log('----- route -----')
