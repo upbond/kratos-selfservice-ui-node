@@ -18,11 +18,11 @@ RUN if [ "$LINK" == "true" ]; then (cd ./contrib/sdk/generated; rm -rf node_modu
     cp -r ./contrib/sdk/generated/* node_modules/@ory/kratos-client/; \
     fi
 
-ENV KRATOS_ADMIN_URL "https://admin.kratos.upbond.io/"
-ENV KRATOS_PUBLIC_URL "https://kratos.upbond.io/"
-ENV KRATOS_BROWSER_URL "https://kratos.upbond.io/"
+ENV KRATOS_ADMIN_URL "https://admin.poc.upbond.io/"
+ENV KRATOS_PUBLIC_URL "https://public.poc.upbond.io/"
+ENV KRATOS_BROWSER_URL "https://browser.poc.upbond.io/"
 ENV PORT "4455"
-ENV HYDRA_ADMIN_URL https://admin.hydra.upbond.io
+ENV HYDRA_ADMIN_URL https://hydra-admin.poc.upbond.io
 
 RUN npm run build
 
