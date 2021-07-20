@@ -20,7 +20,7 @@ RUN if [ "$LINK" == "true" ]; then (cd ./contrib/sdk/generated; rm -rf node_modu
 
 ENV KRATOS_ADMIN_URL "https://admin.poc.upbond.io/"
 ENV KRATOS_PUBLIC_URL "https://public.poc.upbond.io/"
-ENV KRATOS_BROWSER_URL "https://browser.poc.upbond.io/"
+ENV KRATOS_BROWSER_URL "https://public.poc.upbond.io/"
 ENV PORT "4455"
 ENV HYDRA_ADMIN_URL https://hydra-admin.poc.upbond.io
 
